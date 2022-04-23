@@ -17,27 +17,31 @@
 
 pragma solidity ^0.8.6;
 
+// @CO2CULT Names are adapted to the CO2CULT context
 import { Ownable } from '@openzeppelin/contracts/access/Ownable.sol';
 import { ERC721Checkpointable } from './base/ERC721Checkpointable.sol';
-import { INounsDescriptor } from './interfaces/INounsDescriptor.sol';
-import { INounsSeeder } from './interfaces/INounsSeeder.sol';
-import { INounsToken } from './interfaces/INounsToken.sol';
+import { ICO2OrbsDescriptor } from './interfaces/ICO2OrbsDescriptor.sol';// @CO2CULT Note interfaces have not yet been coded for CO2CULT.
+//import { ICO2OrbsSeeder } from './interfaces/ICO2OrbsSeeder.sol'; // @CO2CULT Seeds are not needed.
+import { ICO2OrbsToken } from './interfaces/ICO2OrbsToken.sol';// @CO2CULT Note interfaces have not yet been coded for CO2CULT.
 import { ERC721 } from './base/ERC721.sol';
 import { IERC721 } from '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 import { IProxyRegistry } from './external/opensea/IProxyRegistry.sol';
 
-contract NounsToken is INounsToken, Ownable, ERC721Checkpointable {
+contract CO2OrbsToken is ICO2OrbsToken, Ownable, ERC721Checkpointable {
     // The nounders DAO address (creators org)
-    address public noundersDAO;
+    // @CO2CULT Names are adapted to the CO2CULT context
+    address public CO2CULTDAO;
 
     // An address who has permissions to mint Nouns
     address public minter;
 
     // The Nouns token URI descriptor
-    INounsDescriptor public descriptor;
+    // @CO2CULT Names are adapted to the CO2CULT context
+    ICO2OrbsDescriptor public descriptor;
 
     // The Nouns token seeder
-    INounsSeeder public seeder;
+    //  @CO2CULT Seeds are not needed.
+    //ICO2OrbsSeeder public seeder;
 
     // Whether the minter can be updated
     bool public isMinterLocked;
@@ -46,13 +50,16 @@ contract NounsToken is INounsToken, Ownable, ERC721Checkpointable {
     bool public isDescriptorLocked;
 
     // Whether the seeder can be updated
-    bool public isSeederLocked;
+    // @CO2CULT Seeds are not needed.
+    //bool public isSeederLocked;
 
     // The noun seeds
-    mapping(uint256 => INounsSeeder.Seed) public seeds;
+    // @CO2CULT Seeds are not needed.
+    //mapping(uint256 => ICO2OrbSeeder.Seed) public seeds;
 
     // The internal noun ID tracker
-    uint256 private _currentNounId;
+    // @CO2CULT Names are adapted to the CO2CULT context
+    uint256 private _currentCO2OrbId;
 
     // IPFS content hash of contract-level metadata
     string private _contractURIHash = 'QmZi1n79FqWt2tTLwCqiy6nLM6xLGRsEPQ5JmReJQKNNzX';
@@ -78,17 +85,21 @@ contract NounsToken is INounsToken, Ownable, ERC721Checkpointable {
 
     /**
      * @notice Require that the seeder has not been locked.
+     * @CO2CULT Modifier not necessary as seeder is not removed.
      */
+    /*
     modifier whenSeederNotLocked() {
         require(!isSeederLocked, 'Seeder is locked');
         _;
     }
+    */
 
     /**
      * @notice Require that the sender is the nounders DAO.
+     * @CO2CULT Names are adapted to the CO2CULT context.
      */
-    modifier onlyNoundersDAO() {
-        require(msg.sender == noundersDAO, 'Sender is not the nounders DAO');
+    modifier onlyCO2CULTDAO() {
+        require(msg.sender == CO2CULTDAO, 'Sender is not the CO2CULT DAO');
         _;
     }
 
@@ -100,17 +111,18 @@ contract NounsToken is INounsToken, Ownable, ERC721Checkpointable {
         _;
     }
 
+    // @CO2CULT Names are adapted to the CO2CULT context
     constructor(
-        address _noundersDAO,
+        address _CO2CULTDAO,
         address _minter,
         INounsDescriptor _descriptor,
-        INounsSeeder _seeder,
+        //INounsSeeder _seeder,//  @CO2CULT Seeder not necessary for CO2CULT purposes.
         IProxyRegistry _proxyRegistry
-    ) ERC721('Nouns', 'NOUN') {
-        noundersDAO = _noundersDAO;
+    ) ERC721('CO2Orbs', 'CO2ORB') {
+        CO2CULTDAO = _CO2CULTDAO;
         minter = _minter;
         descriptor = _descriptor;
-        seeder = _seeder;
+        //seeder = _seeder; // @CO2CULT Seeder not necessary for CO2CULT purposes.
         proxyRegistry = _proxyRegistry;
     }
 
@@ -131,6 +143,7 @@ contract NounsToken is INounsToken, Ownable, ERC721Checkpointable {
 
     /**
      * @notice Override isApprovedForAll to whitelist user's OpenSea proxy accounts to enable gas-less listings.
+     * @CO2CULT CO2CULT will adapt this pattern - Note more DD needed.
      */
     function isApprovedForAll(address owner, address operator) public view override(IERC721, ERC721) returns (bool) {
         // Whitelist OpenSea proxy contract for easy trading.
@@ -145,48 +158,58 @@ contract NounsToken is INounsToken, Ownable, ERC721Checkpointable {
      * Noun. Nounders reward Nouns are minted every 10 Nouns, starting at 0,
      * until 183 nounder Nouns have been minted (5 years w/ 24 hour auctions).
      * @dev Call _mintTo with the to address(es).
+     * @CO2CULT Names are adapted to the CO2CULT context.
+     * @CO2CULT In the current CO2CULT context where artists product the NFT art,
+     * @CO2CULT it might not make sense to stop receiving 10% of the mint after
+     * @CO2CULT some number of mints. The limit has been removed.
      */
     function mint() public override onlyMinter returns (uint256) {
-        if (_currentNounId <= 1820 && _currentNounId % 10 == 0) {
-            _mintTo(noundersDAO, _currentNounId++);
+        if (_currentCO2OrbsId % 10 == 0) {
+            _mintTo(CO2CULTDAO, _currentCO2OrbsId++);
         }
-        return _mintTo(minter, _currentNounId++);
+        return _mintTo(minter, _currentCO2OrbsId++);
     }
 
     /**
      * @notice Burn a noun.
+     * @CO2CULT Names are adapted to the CO2CULT context.
      */
-    function burn(uint256 nounId) public override onlyMinter {
-        _burn(nounId);
-        emit NounBurned(nounId);
+    function burn(uint256 CO2OrbsId) public override onlyMinter {
+        _burn(CO2OrbsId);
+        emit CO2OrbBurned(CO2OrbsId);
     }
 
     /**
      * @notice A distinct Uniform Resource Identifier (URI) for a given asset.
      * @dev See {IERC721Metadata-tokenURI}.
+     * @CO2CULT Names are adapted to the CO2CULT context.
+     * @CO2CULT (seed is removed).
      */
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
-        require(_exists(tokenId), 'NounsToken: URI query for nonexistent token');
-        return descriptor.tokenURI(tokenId, seeds[tokenId]);
+        require(_exists(tokenId), 'CO2OrbsToken: URI query for nonexistent token');
+        return descriptor.tokenURI(tokenId);
     }
 
     /**
      * @notice Similar to `tokenURI`, but always serves a base64 encoded data URI
      * with the JSON contents directly inlined.
+     * @CO2CULT Names and functions are adapted to the CO2CULT context.
+     * @CO2CULT (seed is removed).
      */
     function dataURI(uint256 tokenId) public view override returns (string memory) {
-        require(_exists(tokenId), 'NounsToken: URI query for nonexistent token');
-        return descriptor.dataURI(tokenId, seeds[tokenId]);
+        require(_exists(tokenId), 'CO2OrbsToken: URI query for nonexistent token');
+        return descriptor.dataURI(tokenId);
     }
 
     /**
      * @notice Set the nounders DAO.
      * @dev Only callable by the nounders DAO when not locked.
+     * @CO2CULT Function and variable names are adapted to the CO2CULT context.
      */
-    function setNoundersDAO(address _noundersDAO) external override onlyNoundersDAO {
-        noundersDAO = _noundersDAO;
+    function setCO2CULTDAO(address _CO2CULTDAO) external override onlyCO2CULTDAO {
+        CO2CULTDAO = _CO2CULTDAO;
 
-        emit NoundersDAOUpdated(_noundersDAO);
+        emit CO2CULTDAOUpdated(_CO2CULTDAO);
     }
 
     /**
@@ -212,8 +235,10 @@ contract NounsToken is INounsToken, Ownable, ERC721Checkpointable {
     /**
      * @notice Set the token URI descriptor.
      * @dev Only callable by the owner when not locked.
+     * @CO2CULT A token descriptor contract is very useful for generative NFTs.
+     * @CO2CULT In the CO2CULT context it is used for onchain NFT storage.
      */
-    function setDescriptor(INounsDescriptor _descriptor) external override onlyOwner whenDescriptorNotLocked {
+    function setDescriptor(ICO2OrbsDescriptor _descriptor) external override onlyOwner whenDescriptorNotLocked {
         descriptor = _descriptor;
 
         emit DescriptorUpdated(_descriptor);
@@ -222,6 +247,9 @@ contract NounsToken is INounsToken, Ownable, ERC721Checkpointable {
     /**
      * @notice Lock the descriptor.
      * @dev This cannot be reversed and is only callable by the owner when not locked.
+     * @CO2CULT This may serve to increase transparency for the end-user regarding
+     * @CO2CULT service guarantees. The descriptor serves the dataURI fallback
+     * @CO2CULT functionality.
      */
     function lockDescriptor() external override onlyOwner whenDescriptorNotLocked {
         isDescriptorLocked = true;
@@ -232,32 +260,44 @@ contract NounsToken is INounsToken, Ownable, ERC721Checkpointable {
     /**
      * @notice Set the token seeder.
      * @dev Only callable by the owner when not locked.
-     */
+     * @CO2CULT The Seeder functionality is not strongly applicable to the CO2CULT
+     * @CO2CULT context as randomness is not used.
+     /**
     function setSeeder(INounsSeeder _seeder) external override onlyOwner whenSeederNotLocked {
         seeder = _seeder;
 
         emit SeederUpdated(_seeder);
     }
+    */
 
     /**
      * @notice Lock the seeder.
      * @dev This cannot be reversed and is only callable by the owner when not locked.
+     * @CO2CULT This seems to be about service guarantees again; once a proven seeder
+     * @CO2CULT is present, the seeder will be locked so the address doesn't change.
+     * @CO2Cult For CO2CULT purposes this section will not be necessary.
      */
+    /**
     function lockSeeder() external override onlyOwner whenSeederNotLocked {
         isSeederLocked = true;
 
         emit SeederLocked();
     }
+    */
 
     /**
      * @notice Mint a Noun with `nounId` to the provided `to` address.
+     * @CO2CULT This functionality will only be relevant if the DAO decides to
+     * @CO2CULT turn on Seeder functionality with random bit-values generated
+     * @CO2CULT for a series of NFT attributes. Initially for CO2CULT, this will
+     * @CO2CULT serve to generate a different file ID from the token ID. This
+     * @CO2CULT will not be implemented as artists will produce the NFT art.
      */
-    function _mintTo(address to, uint256 nounId) internal returns (uint256) {
-        INounsSeeder.Seed memory seed = seeds[nounId] = seeder.generateSeed(nounId, descriptor);
+    function _mintTo(address to, uint256 CO2OrbsId) internal returns (uint256) {
 
-        _mint(owner(), to, nounId);
-        emit NounCreated(nounId, seed);
+        _mint(owner(), to, CO2OrbsId);
+        emit CO2OrbCreated(CO2OrbsId);
 
-        return nounId;
+        return CO2OrbsId;
     }
 }
